@@ -45,7 +45,8 @@ class VMTest(Architecture):
         tokens.append(
             InstructionTextToken(
                 InstructionTextTokenType.InstructionToken,
-                "{:<8}".format(optext), value=opcode
+                "{:<8}".format(optext),
+                value=opcode
             )
         )
 
@@ -59,7 +60,9 @@ class VMTest(Architecture):
             tokens.append(
                 InstructionTextToken(
                     InstructionTextTokenType.PossibleAddressToken,
-                    '{}'.format(offset), value=offset, size=1
+                    '{}'.format(offset),
+                    value=offset,
+                    size=1
                 )
             )
 
@@ -73,7 +76,9 @@ class VMTest(Architecture):
             tokens.append(
                 InstructionTextToken(
                     InstructionTextTokenType.IntegerToken,
-                    '{}'.format(value), value=value, size=1
+                    '{}'.format(value),
+                    value=value,
+                    size=1
                 )
             )
 
