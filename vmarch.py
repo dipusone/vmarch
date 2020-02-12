@@ -1,5 +1,5 @@
 from binaryninja import (Architecture, InstructionInfo, InstructionTextToken,
-                         InstructionTextTokenType)
+                         InstructionTextTokenType, BranchType, RegisterInfo)
 
 from collections import defaultdict
 import struct
@@ -23,9 +23,16 @@ class VMTest(Architecture):
     # the machine always consumes 3 bytes
     max_instr_length = 3
 
+    # Stack pointer
+    stack_pointer = 'sp'
+
+    regs = {
+        'st': RegisterInfo('st', 1)
+    }
+
     # Helper method
     def parse_instruction(self, data, addr):
-        # fuuuuuu, might be the case to start using python3
+        # fuuuuuu, might be time to start using python3
         opcode, offset, value = struct.unpack("BBB", data[:3])
 
         return opcode, offset, value, 3
@@ -33,8 +40,11 @@ class VMTest(Architecture):
     def get_instruction_info(self, data, addr):
         opcode, offset, value, length = self.parse_instruction(data, addr)
 
+        optext = opcodes[opcode]
         info = InstructionInfo()
         info.length = length
+        if optext == 'ret':
+            info.add_branch(BranchType.FunctionReturn)
 
         return info
 
@@ -82,16 +92,28 @@ class VMTest(Architecture):
                 )
             )
 
-        # if optext == 'store'
-        # elif optext == 'load':
-        # elif optext == 'xor':
-        # elif optext == 'ret':
-        # else:
-
         return tokens, length
 
     def get_instruction_low_level_il(self, data, addr, il):
-        pass
+        opcode, offset, value, length = self.parse_instruction(data, addr)
+
+        optext = opcodes[opcode]
+
+        if optext == 'ret':
+            il.append(il.no_ret())
+
+        if optext == 'store':
+            il.append(
+                il.store(
+                    1,
+                    il.const_pointer(1, offset),
+                    il.const(1, value)
+                )
+            )
+
+
+        return length
+
 
 
 VMTest.register()
