@@ -27,6 +27,7 @@ class VMMalwaretech(Architecture):
     # Stack pointer
     stack_pointer = 'sp'
 
+    # Stack pointed and accumulator
     regs = {
         'sp': RegisterInfo('sp', 1),
         'ax': RegisterInfo('ax', 1)
@@ -53,7 +54,9 @@ class VMMalwaretech(Architecture):
     def get_instruction_text(self, data, addr):
         opcode, offset, value, length = self.parse_instruction(data, addr)
         tokens = []
+
         optext = opcodes[opcode]
+
         tokens.append(
             InstructionTextToken(
                 InstructionTextTokenType.InstructionToken,
@@ -92,6 +95,7 @@ class VMMalwaretech(Architecture):
                     size=1
                 )
             )
+
         if optext == 'load':
             tokens.append(
                 InstructionTextToken(
@@ -113,6 +117,7 @@ class VMMalwaretech(Architecture):
                     size=1
                 )
             )
+
         if optext == 'xor':
             tokens.append(
                 InstructionTextToken(
