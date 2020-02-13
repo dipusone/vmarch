@@ -1,5 +1,6 @@
 from binaryninja import (Architecture, InstructionInfo, InstructionTextToken,
-                         InstructionTextTokenType, BranchType, RegisterInfo)
+                         InstructionTextTokenType, BranchType, RegisterInfo,
+                         BinaryView, SegmentFlag, SectionSemantics)
 
 from collections import defaultdict
 import struct
@@ -141,6 +142,7 @@ class VMTest(Architecture):
 
         if optext == 'ret':
             il.append(il.no_ret())
+            il.append(il.finalize())
 
         # stack[offset] = value
         if optext == 'store':
@@ -177,5 +179,33 @@ class VMTest(Architecture):
         return length
 
 
-
 VMTest.register()
+
+
+class VMTestView(BinaryView):
+    name = 'VMTest'
+    long_name = 'VMTest view'
+
+    def __init__(self, data):
+        BinaryView.__init__(self, parent_view=data, file_metadata=data.file)
+        self.platform = Architecture['VMTest'].standalone_platform
+        self.add_auto_segment(0x0, 0xff,
+                              0x0, 0xff,
+                              SegmentFlag.SegmentWritable | SegmentFlag.SegmentReadable)
+        self.add_auto_segment(0xff, 0xff,
+                              0xff, 0xff,
+                              SegmentFlag.SegmentReadable | SegmentFlag.SegmentExecutable)
+        self.add_auto_section('data',
+                              0x0, 0xff,
+                              SectionSemantics.ReadWriteDataSectionSemantics)
+        self.add_auto_section('text',
+                              0xff, 0xff,
+                              SectionSemantics.ReadOnlyCodeSectionSemantics)
+
+        self.add_entry_point(0xff)
+
+    @classmethod
+    def is_valid_for_data(self, data):
+        return True
+
+VMTestView.register()
