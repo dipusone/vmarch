@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import sys
+import time
+
 from collections import defaultdict
 
 
@@ -15,41 +17,57 @@ opcodes = defaultdict(
 )
 
 regs = {
-    'ac': 1
+    'ax': 1
 }
 
 
 def print_stack():
     global stack
     for i in range(17):
+        print("0x{:<3x}: ".format(i), end='')
         for j in range(0xf):
-            print(stack[0xf * i + j], end=' ')
+            print("{:<3x}".format(stack[0xf * i + j]), end=' ')
+        print(" | ", end='')
+        for j in range(0xf):
+            try:
+                print(chr(stack[0xf * i + j]), end=' ')
+            except:
+                print(repr(stack[0xf * i + j]), end=' ')
         print()
 
 
 def exec_bin(text):
     to_end = False
+    always_print_stack = False
+    sleep = 0
     while True:
         opcode, offset, value = text[:3]
         text = text[3:]
         disas(opcode, offset, value)
         r = exec_opcode(opcode, offset, value)
+        if always_print_stack:
+            print_stack()
         while not to_end:
             op = input('> ').strip()
             if op == 'p':
                 print_stack()
+            if op == 'pp':
+                always_print_stack = not always_print_stack
             if op == 'r':
-                print("{:x}".format(regs['ac']))
+                print("{:x}".format(regs['ax']))
             if op == 'd':
                 disas(opcode, offset, value)
             if op == 'q':
                 sys.exit(0)
             if op == 'e':
                 to_end = True
+            if op.startswith('s '):
+                sleep = float(op.split()[1])
             if op == '' or op == 'c':
                 break
         if r:
             return
+        time.sleep(sleep)
 
 
 def disas(opcode, offset, value):
@@ -80,11 +98,11 @@ def exec_opcode(opcode, offset, value):
 
     # ac = stack[offset]
     if optext == 'load':
-        regs['ac'] = stack[offset]
+        regs['ax'] = stack[offset]
 
     # stack[offset] = stack[offset] ^ ac
     if optext == 'xor':
-        stack[offset] = stack[offset] ^ regs['ac']
+        stack[offset] = stack[offset] ^ regs['ax']
     return False
 
 
