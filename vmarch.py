@@ -29,7 +29,7 @@ class VMTest(Architecture):
 
     regs = {
         'sp': RegisterInfo('sp', 1),
-        'ac': RegisterInfo('ac', 1)
+        'ax': RegisterInfo('ax', 1)
     }
 
     # Helper method
@@ -96,7 +96,7 @@ class VMTest(Architecture):
             tokens.append(
                 InstructionTextToken(
                     InstructionTextTokenType.RegisterToken,
-                    'ac'
+                    'ax'
                 )
             )
             tokens.append(
@@ -131,7 +131,7 @@ class VMTest(Architecture):
             tokens.append(
                 InstructionTextToken(
                     InstructionTextTokenType.RegisterToken,
-                    'ac'
+                    'ax'
                 )
             )
         return tokens, length
@@ -153,16 +153,16 @@ class VMTest(Architecture):
                     il.const(1, value)
                 )
             )
-        # ac = stack[offset]
+        # ax = stack[offset]
         if optext == 'load':
             il.append(
                 il.set_reg(
-                    1, 'ac',
+                    1, 'ax',
                     il.load(1, il.const_pointer(1, offset))
                 )
             )
 
-        # stack[offset] = stack[offset] ^ ac
+        # stack[offset] = stack[offset] ^ ax
         if optext == 'xor':
             il.append(
                 il.store(
@@ -171,7 +171,7 @@ class VMTest(Architecture):
                     il.xor_expr(
                         1,
                         il.load(1, il.const_pointer(1, offset)),
-                        il.reg(1, 'ac')
+                        il.reg(1, 'ax')
                     )
                 )
             )
