@@ -27,7 +27,8 @@ class VMTest(Architecture):
     stack_pointer = 'sp'
 
     regs = {
-        'st': RegisterInfo('st', 1)
+        'sp': RegisterInfo('sp', 1),
+        'ac': RegisterInfo('ac', 1)
     }
 
     # Helper method
@@ -66,7 +67,8 @@ class VMTest(Architecture):
                 ' '
             )
         )
-        if optext != 'ret':
+
+        if optext == 'store':
             tokens.append(
                 InstructionTextToken(
                     InstructionTextTokenType.PossibleAddressToken,
@@ -75,8 +77,6 @@ class VMTest(Architecture):
                     size=1
                 )
             )
-
-        if optext == 'store':
             tokens.append(
                 InstructionTextToken(
                     InstructionTextTokenType.OperandSeparatorToken,
@@ -91,17 +91,58 @@ class VMTest(Architecture):
                     size=1
                 )
             )
-
+        if optext == 'load':
+            tokens.append(
+                InstructionTextToken(
+                    InstructionTextTokenType.RegisterToken,
+                    'ac'
+                )
+            )
+            tokens.append(
+                InstructionTextToken(
+                    InstructionTextTokenType.OperandSeparatorToken,
+                    ', '
+                )
+            )
+            tokens.append(
+                InstructionTextToken(
+                    InstructionTextTokenType.PossibleAddressToken,
+                    '{}'.format(offset),
+                    value=offset,
+                    size=1
+                )
+            )
+        if optext == 'xor':
+            tokens.append(
+                InstructionTextToken(
+                    InstructionTextTokenType.PossibleAddressToken,
+                    '{}'.format(offset),
+                    value=offset,
+                    size=1
+                )
+            )
+            tokens.append(
+                InstructionTextToken(
+                    InstructionTextTokenType.OperandSeparatorToken,
+                    ', '
+                )
+            )
+            tokens.append(
+                InstructionTextToken(
+                    InstructionTextTokenType.RegisterToken,
+                    'ac'
+                )
+            )
         return tokens, length
 
     def get_instruction_low_level_il(self, data, addr, il):
         opcode, offset, value, length = self.parse_instruction(data, addr)
-
         optext = opcodes[opcode]
 
         if optext == 'ret':
             il.append(il.no_ret())
 
+        # stack[offset] = value
         if optext == 'store':
             il.append(
                 il.store(
@@ -110,7 +151,28 @@ class VMTest(Architecture):
                     il.const(1, value)
                 )
             )
+        # ac = stack[offset]
+        if optext == 'load':
+            il.append(
+                il.set_reg(
+                    1, 'ac',
+                    il.load(1, il.const_pointer(1, offset))
+                )
+            )
 
+        # stack[offset] = stack[offset] ^ ac
+        if optext == 'xor':
+            il.append(
+                il.store(
+                    1,
+                    il.const_pointer(1, offset),
+                    il.xor_expr(
+                        1,
+                        il.load(1, il.const_pointer(1, offset)),
+                        il.reg(1, 'ac')
+                    )
+                )
+            )
 
         return length
 
