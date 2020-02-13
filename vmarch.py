@@ -14,8 +14,8 @@ opcodes = defaultdict(
 )
 
 
-class VMTest(Architecture):
-    name = "VMTest"
+class VMMalwaretech(Architecture):
+    name = "VMMalwaretech"
 
     # 1 byte address size
     address_size = 1
@@ -142,7 +142,6 @@ class VMTest(Architecture):
 
         if optext == 'ret':
             il.append(il.no_ret())
-            il.append(il.finalize())
 
         # stack[offset] = value
         if optext == 'store':
@@ -179,16 +178,16 @@ class VMTest(Architecture):
         return length
 
 
-VMTest.register()
+VMMalwaretech.register()
 
 
-class VMTestView(BinaryView):
-    name = 'VMTest'
-    long_name = 'VMTest view'
+class VMMalwaretechView(BinaryView):
+    name = 'VMMalwaretech'
+    long_name = 'VMMalwaretech simple view'
 
     def __init__(self, data):
         BinaryView.__init__(self, parent_view=data, file_metadata=data.file)
-        self.platform = Architecture['VMTest'].standalone_platform
+        self.platform = Architecture['VMMalwaretech'].standalone_platform
         self.add_auto_segment(0x0, 0xff,
                               0x0, 0xff,
                               SegmentFlag.SegmentWritable | SegmentFlag.SegmentReadable)
@@ -208,4 +207,5 @@ class VMTestView(BinaryView):
     def is_valid_for_data(self, data):
         return True
 
-VMTestView.register()
+
+VMMalwaretechView.register()
