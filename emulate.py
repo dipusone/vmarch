@@ -112,7 +112,9 @@ if __name__ == '__main__':
     stack = bytearray(data[0x0:0xff])
     text = bytearray(data[0xff:])
     exec_bin(text)
+    print('=' * 30)
     print_stack()
+    print()
     for i in range(25):
         print(chr(stack[i]), end='')
     print()
