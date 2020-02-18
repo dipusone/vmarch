@@ -17,7 +17,8 @@ opcodes = defaultdict(
 )
 
 regs = {
-    'ax': 1
+    'ax': 1,
+    'sp': 0
 }
 
 
