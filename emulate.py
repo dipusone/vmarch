@@ -17,7 +17,8 @@ opcodes = defaultdict(
 )
 
 regs = {
-    'ax': 1
+    'ax': 1,
+    'ip': 1
 }
 
 dbg_conf = {
@@ -25,10 +26,20 @@ dbg_conf = {
     'always_print_data': False,
     'always_print_regs': False,
     'clear_screen': False,
+    'breakpoints': [],
     'sep': '=' * 30,
     'sleep': 0,
     'state': []
 }
+
+
+def catch_everyting(func):
+    def wrap(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            print("Error: ", str(e))
+    return wrap
 
 
 def print_data():
@@ -50,7 +61,7 @@ def print_data():
 def print_regs():
     global regs, dbg_conf
     for reg in sorted(regs.keys()):
-        print("{:<3}: {:x}".format(reg, regs[reg]))
+        print("0x{:<3}: 0x{:x}".format(reg, regs[reg]))
     print(dbg_conf['sep'])
 
 
@@ -69,8 +80,20 @@ def disas(opcode, offset, value):
         print(f"data[{offset}] = data[{offset}] ^ ac")
 
 
+@catch_everyting
 def exec_commands(op):
+    def text_to_int(value):
+        if value.startswith('0x'):
+            int_val = int(value, 16)
+        else:
+            int_val = int(value)
+        return int_val
+
     global dbg_conf
+    global text
+    global data
+    global regs
+
     opcode, offset, value = dbg_conf['state']
     if op == 'p':
         print_data()
@@ -82,26 +105,52 @@ def exec_commands(op):
         dbg_conf['always_print_regs'] = not dbg_conf['always_print_regs']
     if op == 'cc':
         dbg_conf['clear_screen'] = not dbg_conf['clear_screen']
-    if op == 'd':
-        disas(opcode, offset, value)
+    if op.startswith('d'):
+        to_disas = dbg_conf['state']
+        if ' ' in op:
+            disass_ip = text_to_int(op.split()[1])
+            to_disas = text[(disass_ip - 1) * 3:disass_ip * 3]
+        disas(*to_disas)
     if op == 'q':
         sys.exit(0)
+    if op.startswith('b '):
+        b_ip = text_to_int(op.split()[1])
+        if b_ip not in dbg_conf['breakpoints']:
+            dbg_conf['breakpoints'].append(b_ip)
+    if op == 'ib':
+        print("Breakpoints:")
+        for i, breakpoint in enumerate(dbg_conf['breakpoints']):
+            print("{:<2}: {:d}".format(i, breakpoint))
+    if op.startswith('db '):
+        bp_idx = text_to_int(op.split()[1])
+        if bp_idx < len(dbg_conf['breakpoints']):
+            del dbg_conf['breakpoints'][bp_idx]
     if op == 'c':
         dbg_conf['to_end'] = True
         return True
     if op.startswith('s '):
+        t, src, val = op.split(' ')[1:]
+        if t == 'r' and src in regs:
+            regs[src] = ext_to_int(val)
+        if t == 'd':
+            addr = ext_to_int(src)
+            if addr < len(data):
+                data[addr] = ext_to_int(val)
+    if op.startswith('w '):
         dbg_conf['sleep'] = float(op.split()[1])
     if op == '' or op == 'n':
+        dbg_conf['to_end'] = False
         return True
     return False
 
 
 def exec_bin(text):
     global dbg_conf
+    global regs
     while True:
-        opcode, offset, value = text[:3]
+        curr_ip = regs['ip']
+        opcode, offset, value = text[(curr_ip - 1) * 3:curr_ip * 3]
         dbg_conf['state'] = [opcode, offset, value]
-        text = text[3:]
         r = exec_opcode(opcode, offset, value)
         if dbg_conf['clear_screen']:
             print('\033c', end='')
@@ -111,12 +160,13 @@ def exec_bin(text):
             print_data()
         disas(opcode, offset, value)
 
-        while not dbg_conf['to_end']:
+        while not dbg_conf['to_end'] or curr_ip in dbg_conf['breakpoints']:
             op = input('> ').strip()
             if exec_commands(op):
                 break
         if r:
             return
+        regs['ip'] += 1
         time.sleep(dbg_conf['sleep'])
 
 
