@@ -35,7 +35,7 @@ class VMMalwaretech(Architecture):
 
     # Helper method
     def parse_instruction(self, data, addr):
-        # fuuuuuu, might be time to start using python3
+        # This should work for python2 and 3
         opcode, offset, value = struct.unpack("BBB", data[:3])
 
         return opcode, offset, value, 3
@@ -210,6 +210,15 @@ class VMMalwaretechView(BinaryView):
 
     @classmethod
     def is_valid_for_data(self, data):
+        # force it only to work on the raw bin
+        # bytes from the offset 0x20 on
+        offset = 0x20
+        tell = [0xde, 0x7e, 0x7d, 0x55, 0x1e, 0x05, 0xe6, 0x9f,
+                0xe4, 0xa6, 0x47, 0x50, 0x02, 0x01, 0xc7, 0xfc,
+                0xcb, 0x60, 0x09, 0xc6, 0x0e, 0x2e, 0x41, 0x65]
+        for t, d in zip(tell, data[offset:offset + len(tell)]):
+            if t != d:
+                return False
         return True
 
 
