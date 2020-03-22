@@ -61,7 +61,7 @@ def print_data():
 def print_regs():
     global regs, dbg_conf
     for reg in sorted(regs.keys()):
-        print("0x{:<3}: 0x{:x}".format(reg, regs[reg]))
+        print("{:<3}: 0x{:x}".format(reg, regs[reg]))
     print(dbg_conf['sep'])
 
 
