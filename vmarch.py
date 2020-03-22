@@ -211,7 +211,7 @@ class VMMalwaretechView(BinaryView):
     @classmethod
     def is_valid_for_data(self, data):
         # force it only to work on the raw bin
-        # bytes from the offset 0x20 on
+        # bytes from the offset 0x20
         offset = 0x20
         tell = [0xde, 0x7e, 0x7d, 0x55, 0x1e, 0x05, 0xe6, 0x9f,
                 0xe4, 0xa6, 0x47, 0x50, 0x02, 0x01, 0xc7, 0xfc,
