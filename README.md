@@ -4,8 +4,8 @@ This is what I ended up writing to solve the VM Challenge from MarwareTech [here
 I got a little carried away and ended up writing a BinaryNinja custom architecture and an emulator with a debugger.
 
 ## Files
-* vmarch.py is the BinaryNinja architecture for the ram dump
-* emulate.py is the emulator and simple debugger for the code
+* `vmarch.py` is the BinaryNinja architecture for the ram dump
+* `emulate.py` is the emulator and simple debugger for the code
 
 ## Binja architecture
 
@@ -40,7 +40,7 @@ The set of emulator commands is quite limited but enough to have fun.
 * `s d <addr> <val>`: set the data at <addr> to <val>. It is equivalent to `*addr = val`
 
 ### Misc
-* `w <wait_time>` : when in `run to end` mode, wait `<waith_time>` seconds before, stepping. Just because :).
+* `w <wait_time>` : when in `run to end` mode, wait `<waith_time>` seconds before, stepping. Just because :)
 * `q` : exit from the emulator
 
 
